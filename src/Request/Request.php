@@ -188,7 +188,11 @@ class Request extends SymfonyRequest
   {
     // TODO: either wrap in try catch or check array_keys_exist first
     $application = $this->alexa_session->get('application');
-    return ($application['applicationId'] == $expected_application_id);
+    if($application['applicationId'] !== $expected_application_id){
+      throw new Exception('ApplicationId: '.$application['applicationId'].' does not match expected ApplicationId: '.$expected_application_id);
+    } else {
+      return true;
+    }
   }
   
   /**
