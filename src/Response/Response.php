@@ -68,11 +68,13 @@ class Response extends JsonResponse implements JsonSerializable
    * @param Card          $card
    * @param Reprompt      $reprompt
    */
-  public function __construct(OutputSpeech $outputSpeech = null)
+  public function __construct(OutputSpeech $outputSpeech = null, Card $card = null, Reprompt $reprompt = null)
   {
     parent::__construct();
     $this->headers->set('Content-Type', 'application/json');
     $this->outputSpeech = $outputSpeech;
+    $this->card 				= $card;
+    $this->reprompt			= $reprompt;
     
     $this->setData($this->jsonSerialize());
     

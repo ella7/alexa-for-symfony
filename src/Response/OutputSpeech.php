@@ -2,6 +2,7 @@
 
 namespace Alexa\Response;
 
+use JsonSerializable;
 use Exception;
 
 /**
@@ -9,7 +10,7 @@ use Exception;
  * 
  * @author Ryan Packer
  */
-class OutputSpeech
+class OutputSpeech implements JsonSerializable
 {
 
   const TYPE_PLAINTEXT  = 'PlainText';
@@ -98,5 +99,19 @@ class OutputSpeech
     ];
     return $keys[$this->type];
   }
+  
+  /**
+   * This function is called by json_encode and returns an array representing the parts
+   * of this object that are intended to exist in the JSON representation. 
+   *  
+   * @return array 
+   */
+  public function jsonSerialize()
+  {
+    $output_speech = [];
+    $output_speech['type'] = $this->type;
+    $output_speech[$this->valueKeyForType()] = $this->value;
+    return $output_speech;
+  }  
   
 }
