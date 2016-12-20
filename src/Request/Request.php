@@ -108,6 +108,26 @@ class Request extends SymfonyRequest
   }
   
   /**
+   * Get slots
+   *
+   * @return array
+   */
+  public function getSlots()
+  {
+    return $this->slots;
+  }
+  
+  /**
+   * Get the value for a slot 
+   *
+   * @return mixed
+   */
+  public function getSlot($slot_key)
+  {
+    return array_get($this->slots, $slot_key.'.value'); 
+  }  
+  
+  /**
    * Returns the alexa request type, i.e. IntentRequest
    *
    * @return string
