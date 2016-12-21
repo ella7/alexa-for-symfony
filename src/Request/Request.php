@@ -2,7 +2,6 @@
 
 namespace Alexa\Request;
 
-// TODO: create new project with composer and require necessary symfony components
 use Symfony\Component\HttpFoundation\Request as SymfonyRequest; 
 use Symfony\Component\HttpFoundation\ParameterBag;
 use Alexa\Request\Certificate;
