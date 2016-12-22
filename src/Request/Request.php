@@ -2,10 +2,8 @@
 
 namespace Alexa\Request;
 
-// TODO: create new project with composer and require necessary symfony components
 use Symfony\Component\HttpFoundation\Request as SymfonyRequest; 
 use Symfony\Component\HttpFoundation\ParameterBag;
-use Alexa\Request\Certificate;
 use DateTime;
 use DateTimeZone;
 use DateInterval;
@@ -55,6 +53,13 @@ class Request extends SymfonyRequest
    * @var array
    */
   protected $slots;
+
+  /**
+   * Handler to get dateTime information from specified slots
+   *
+   * @var DateTimeDurationSlotHandler
+   */  
+  protected $dateTimeDurationSlotHandler;
   
       
   
@@ -63,7 +68,7 @@ class Request extends SymfonyRequest
    *
    * @return Request A new request
    */
-  public static function createFromSymfonyRequest(SymfonyRequest $symfony_request)
+  public static function createFromSymfonyRequest(SymfonyRequest $symfony_request, DateTimeZone $timezone)
   {
     $new_request = new Request();
     $new_request->query       = clone $symfony_request->query;
@@ -76,6 +81,7 @@ class Request extends SymfonyRequest
     $new_request->session     = clone $symfony_request->session;
     
     $new_request->setAlexaSpecificPropertiesFromRawRequest();
+    $new_request->setDateTimeDurationSlotHandler($timezone);
     
     return $new_request;
   }
@@ -110,6 +116,22 @@ class Request extends SymfonyRequest
   }
   
   /**
+  * Adds a DateTimeDurationSlotHandler to the request allowing others to write their own handlers
+  * as needed to extend default functionality
+  *
+  * @param DateTimeZone                 $timezone
+  * @param DateTimeDurationSlotHandler  $handler
+  */
+  public function setDateTimeDurationSlotHandler(DateTimeZone $timezone, DateTimeDurationSlotHandler $handler = null)
+  {
+    if(!$handler){
+      $this->dateTimeDurationSlotHandler = new DateTimeDurationSlotHandler($this->getSlots(), $timezone);
+    } else {
+      $this->dateTimeDurationSlotHandler = $handler;
+    }
+  }
+  
+  /**
    * Get slots
    *
    * @return array
@@ -130,82 +152,14 @@ class Request extends SymfonyRequest
   }  
 
   /**
-   * Get a PHP DateTime object from the slot 
-   *
-   * @param string    $slot_key
-   * @param string    $time_zone_str
+   * Get DateTimeDurationSlotHandler
    *
    * @return mixed
    */
-  public function getDateTimeFromSlot($slot_key, $time_zone_str)
+  public function getDateTimeDurationSlotHandler()
   {
-    $slot_value = $this->getSlot($slot_key);
-
-    if($slot_value){
-      return new DateTime($slot_value, new DateTimeZone($time_zone_str));
-    }
-    return null;
+    return $this->dateTimeDurationSlotHandler;
   }
-  
-  /**
-   * Get a PHP DateInterval object from the slot 
-   *
-   * @param string    $slot_key
-   * @param string    $time_zone_str
-   *
-   * @return mixed
-   */
-  public function getDateIntervalFromSlot($slot_key)
-  {
-    $slot_value = $this->getSlot($slot_key);
-
-    if($slot_value){
-      return new DateInterval($slot_value);
-    }
-    return null;
-  }
-  
-  /**
-   * Get a PHP DateTime object from AMAZON.DATE and AMAZON.TIME slots. If either slot is not set,
-   * the function uses "now" for the date, or time, or both. 
-   *
-   * @param string    $date_slot_key
-   * @param string    $time_slot_key
-   * @param string    $time_zone_str    The PHP timezone string for the timezone of the Alexa device
-   *
-   * @return mixed
-   */
-  public function getDateTimeFromSlots($date_slot_key, $time_slot_key, $time_zone_str)
-  {
-    $date_time = new DateTime(null, new DateTimeZone($time_zone_str));
-
-    if($date = $this->getDateTimeFromSlot($date_slot_key, $time_zone_str)){
-      $date_time->setDate($date->format('Y'), $date->format('m'), $date->format('d'));
-    };
-    
-    if($time = $this->getDateTimeFromSlot($time_slot_key, $time_zone_str)){
-      $date_time->setTime($time->format('H'), $time->format('i'), $time->format('s')); 
-    };
-    return $date_time;
-  }
-  
-  /**
-   * Get a PHP DateTime object from AMAZON.DURATION slot.
-   *
-   * @param string    $duration_slot_key
-   * @param string    $time_zone_str    The PHP timezone string for the timezone of the Alexa device
-   *
-   * @return mixed
-   */
-  public function getDateTimeFromDurationSlot($duration_slot_key, $time_zone_str)
-  {
-    $date_time = new DateTime(null, new DateTimeZone($time_zone_str));
-
-    if($duration = $this->getDateIntervalFromSlot($duration_slot_key)){
-      $date_time->sub($duration);
-    };
-    return $date_time;
-  }  
   
   /**
    * Returns the alexa request type, i.e. IntentRequest
