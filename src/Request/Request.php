@@ -8,6 +8,7 @@ use Symfony\Component\HttpFoundation\ParameterBag;
 use Alexa\Request\Certificate;
 use DateTime;
 use DateTimeZone;
+use DateInterval;
 use Exception;
 
 /**
@@ -147,6 +148,24 @@ class Request extends SymfonyRequest
   }
   
   /**
+   * Get a PHP DateInterval object from the slot 
+   *
+   * @param string    $slot_key
+   * @param string    $time_zone_str
+   *
+   * @return mixed
+   */
+  public function getDateIntervalFromSlot($slot_key)
+  {
+    $slot_value = $this->getSlot($slot_key);
+
+    if($slot_value){
+      return new DateInterval($slot_value);
+    }
+    return null;
+  }
+  
+  /**
    * Get a PHP DateTime object from AMAZON.DATE and AMAZON.TIME slots. If either slot is not set,
    * the function uses "now" for the date, or time, or both. 
    *
@@ -169,6 +188,24 @@ class Request extends SymfonyRequest
     };
     return $date_time;
   }
+  
+  /**
+   * Get a PHP DateTime object from AMAZON.DURATION slot.
+   *
+   * @param string    $duration_slot_key
+   * @param string    $time_zone_str    The PHP timezone string for the timezone of the Alexa device
+   *
+   * @return mixed
+   */
+  public function getDateTimeFromDurationSlot($duration_slot_key, $time_zone_str)
+  {
+    $date_time = new DateTime(null, new DateTimeZone($time_zone_str));
+
+    if($duration = $this->getDateIntervalFromSlot($duration_slot_key)){
+      $date_time->sub($duration);
+    };
+    return $date_time;
+  }  
   
   /**
    * Returns the alexa request type, i.e. IntentRequest
