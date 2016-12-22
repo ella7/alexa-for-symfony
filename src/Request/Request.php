@@ -7,6 +7,7 @@ use Symfony\Component\HttpFoundation\Request as SymfonyRequest;
 use Symfony\Component\HttpFoundation\ParameterBag;
 use Alexa\Request\Certificate;
 use DateTime;
+use DateTimeZone;
 use Exception;
 
 /**
@@ -105,6 +106,68 @@ class Request extends SymfonyRequest
     } else {
       // TODO: Throw a proper exception 
     }
+  }
+  
+  /**
+   * Get slots
+   *
+   * @return array
+   */
+  public function getSlots()
+  {
+    return $this->slots;
+  }
+  
+  /**
+   * Get the value for a slot 
+   *
+   * @return mixed
+   */
+  public function getSlot($slot_key)
+  {
+    return array_get($this->slots, $slot_key.'.value'); 
+  }  
+
+  /**
+   * Get a PHP DateTime object from the slot 
+   *
+   * @param string    $slot_key
+   * @param string    $time_zone_str
+   *
+   * @return mixed
+   */
+  public function getDateTimeFromSlot($slot_key, $time_zone_str)
+  {
+    $slot_value = $this->getSlot($slot_key);
+
+    if($slot_value){
+      return new DateTime($slot_value, new DateTimeZone($time_zone_str));
+    }
+    return null;
+  }
+  
+  /**
+   * Get a PHP DateTime object from AMAZON.DATE and AMAZON.TIME slots. If either slot is not set,
+   * the function uses "now" for the date, or time, or both. 
+   *
+   * @param string    $date_slot_key
+   * @param string    $time_slot_key
+   * @param string    $time_zone_str    The PHP timezone string for the timezone of the Alexa device
+   *
+   * @return mixed
+   */
+  public function getDateTimeFromSlots($date_slot_key, $time_slot_key, $time_zone_str)
+  {
+    $date_time = new DateTime(null, new DateTimeZone($time_zone_str));
+
+    if($date = $this->getDateTimeFromSlot($date_slot_key, $time_zone_str)){
+      $date_time->setDate($date->format('Y'), $date->format('m'), $date->format('d'));
+    };
+    
+    if($time = $this->getDateTimeFromSlot($time_slot_key, $time_zone_str)){
+      $date_time->setTime($time->format('H'), $time->format('i'), $time->format('s')); 
+    };
+    return $date_time;
   }
   
   /**
