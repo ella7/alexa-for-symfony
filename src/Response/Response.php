@@ -82,6 +82,16 @@ class Response extends JsonResponse implements JsonSerializable
   }
   
   /**
+   * Factory for most basic Alexa\Response where OutputSpeech text and Card text are the same.
+   * 
+   * @param string    $text
+   */
+  public static function BasicResponse($text = '')
+  {
+    return new Response(new OutputSpeech($text), new Card($text));
+  }  
+  
+  /**
    * This function is called by json_encode and returns an array representing the parts of this 
    * object that are intended to exist in the JSON representation. 
    *  
