@@ -4,6 +4,8 @@ namespace Alexa\Response;
 
 use Symfony\Component\HttpFoundation\JsonResponse;
 use JsonSerializable;
+use DateTime;
+use DateTimeZone;
 
 /**
  * Request represents an HTTP response to be provided to Amazon Alexa.
@@ -158,5 +160,39 @@ class Response extends JsonResponse implements JsonSerializable
       'shouldEndSession'        => 'shouldEndSession',
       'directives'              => 'directives'
     ];
+  }
+  
+  /**
+   * Provides a string that attempts to represent in plain english how much time has elapsed since
+   * the passed in DateTime. This is an early version with specific and limited functionality. 
+   *
+   * @param DateTime        $date_time
+   * @param DateTimeZone    $timezone
+   *
+   * @return string 
+   */
+  public static function getRelativeTimeString($date_time, $timezone)
+  {
+    $date_time->setTimezone($timezone);
+    $now = new DateTime(null, $timezone);
+    
+    $time_string = $date_time->format('h:i A');
+      
+    $interval = $date_time->setTime(0, 0, 0)->diff($now->setTime(0, 0, 0));
+    $days = $interval->d;
+        
+    if($days == 0){
+      $date_string = 'today';
+    }
+    if($days == 1){
+      $date_string = 'yesterday';
+    }
+    if($days > 1){
+      $date_string = $days.' days ago';
+    }
+    if($interval->invert){
+      $date_string = 'on some future date. Something is wrong';
+    }
+    return $time_string.' '.$date_string;
   }
 }
