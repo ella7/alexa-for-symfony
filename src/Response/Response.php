@@ -184,15 +184,21 @@ class Response extends JsonResponse implements JsonSerializable
     if($days == 0){
       $date_string = 'today';
     }
-    if($days == 1){
-      $date_string = 'yesterday';
-    }
-    if($days > 1){
-      $date_string = $days.' days ago';
-    }
     if($interval->invert){
-      $date_string = 'on some future date. Something is wrong';
-    }
-    return 'at '.$time_string.' '.$date_string;
+        if($days == 1){
+          $date_string = 'tomorrow';
+        }
+        if($days > 1){
+          $date_string = 'in '.$days.' days';
+        } 
+    } else {
+        if($days == 1){
+          $date_string = 'yesterday';
+        }
+        if($days > 1){
+          $date_string = $days.' days ago';
+        }
+    }        
+    return $date_string.' at '.$time_string;
   }
 }
